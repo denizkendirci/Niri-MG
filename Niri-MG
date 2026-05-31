@@ -45,12 +45,12 @@ TARGET_FILE="$HOME/.config/niri/config.kdl"
 if curl -sSf "$CONFIG_URL" -o "$TARGET_FILE"; then
     echo "✓ Configuration successfully deployed to $TARGET_FILE"
 else
-    echo "⚠️ Failed to fetch from main branch. Trying master branch..."
+    echo "Failed to fetch from main branch. Trying master branch..."
     ALT_URL="https://raw.githubusercontent.com/denizkendirci/Dots/master/niri-config.kdl"
     if curl -sSf "$ALT_URL" -o "$TARGET_FILE"; then
         echo "✓ Configuration successfully deployed to $TARGET_FILE"
     else
-        echo "❌ Error: Could not download file. Please double-check your repository branch name."
+        echo "Error: Could not download file. Please double-check your repository branch name."
         exit 1
     fi
 fi
