@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+echo "====== Starting System Setup ======"
+
+# 1. Update system and install official Arch repositories packages
+echo "--> Installing official packages (git, foot, fuzzel, swaybg, and Niri dependencies)..."
+sudo pacman -Syu --needed --noconfirm \
+    git \
+    base-devel \
+    foot \
+    fuzzel \
+    swaybg \
+    curl \
+    niri
+
+# 2. Build and install paru-bin from the AUR
+if ! command -v paru &> /dev/null; then
+    echo "--> Paru not found. Installing paru-bin..."
+    SRC_DIR=$(mktemp -d)
+    git clone https://aur.archlinux.org/paru-bin.git "$SRC_DIR"
+    
+    # Change directory and build package as regular user
+    cd "$SRC_DIR"
+    makepkg -si --noconfirm
+    
+    # Clean up the temporary build directory
+    cd - > /dev/null
+    rm -rf "$SRC_DIR"
+else
+    echo "--> Paru is already installed. Skipping."
+fi
+
+# 3. Create necessary configuration directory
+echo "--> Setting up directory structure..."
+mkdir -p "$HOME/.config/niri"
+
+# 4. Pull your specific niri config from GitHub using raw URL path
+echo "--> Fetching config from GitHub..."
+CONFIG_URL="https://raw.githubusercontent.com/denizkendirci/Dots/main/niri-config.kdl"
+TARGET_FILE="$HOME/.config/niri/config.kdl"
+
+if curl -sSf "$CONFIG_URL" -o "$TARGET_FILE"; then
+    echo "✓ Configuration successfully deployed to $TARGET_FILE"
+else
+    echo "⚠️ Failed to fetch from main branch. Trying master branch..."
+    ALT_URL="https://raw.githubusercontent.com/denizkendirci/Dots/master/niri-config.kdl"
+    if curl -sSf "$ALT_URL" -o "$TARGET_FILE"; then
+        echo "✓ Configuration successfully deployed to $TARGET_FILE"
+    else
+        echo "❌ Error: Could not download file. Please double-check your repository branch name."
+        exit 1
+    fi
+fi
+
+echo "====== Setup Complete! ====== "
+echo "You can now log out and select Niri from your display manager."
